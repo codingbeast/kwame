@@ -44,13 +44,9 @@ class log():
 
 class URLChecker:
 	def __init__(self):
-		try:
-			os.mkdir("outputs")
-		except:
-			pass
 		with open('output.csv', 'w', newline='', encoding='utf-8') as f:
     			writer = csv.writer(f)
-    			writer.writerow(["URL", "STATUS", "FILENAME"]) 
+    			writer.writerow(["URL", "STATUS"]) 
     		if os.path.exists("urls.txt"):
     			with open("urls.txt", "r") as reader:
 				self.urls = [i.strip("\n") for i in reader.readlines() if i.strip("\n") not in self.backup and len(i.strip("\n"))>1] 
@@ -117,7 +113,7 @@ class URLChecker:
 				except:
 					with open('output.csv', 'a', newline='', encoding='utf-8') as f:
 						writer = csv.writer(f)
-						writer.writerow([j, "blocked", "not available"])
+						writer.writerow([j, "blocked"])
 				if "blocked" in driver.title.lower() or "block" in driver.title.lower() or "denied" in driver.title.lower():
 					status = ''
 				else:
@@ -141,17 +137,9 @@ class URLChecker:
 					status = "working"
 				else:
 					status = "blocked" 
-				name = "_".join(j.split("/"))
-				filename = "{}.txt".format(name)
-				namereal = os.path.join("outputs",filename)
-				html_source = driver.page_source
-				soup = BeautifulSoup(html_source,"html.parser")
-				textdata = soup.get_text(separator=' ')
-				with open(namereal,"w", encoding='utf-8') as writer:
-					writer.write(str(textdata))
 				with open('output.csv', 'a', newline='', encoding='utf-8') as f:
 					writer = csv.writer(f)
-					writer.writerow([j, status, namereal])
+					writer.writerow([j, status])
 				driver.close()   
 				#sys.exit()	
 obj = URLChecker()
