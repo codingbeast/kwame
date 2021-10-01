@@ -8,9 +8,9 @@ import logging
 import time
 import sys
 import time
+from bs4 import BeautifulSoup
 import colorlog
 from selenium import webdriver
-from bs4 import BeautifulSoup
 from msedge.selenium_tools import EdgeOptions
 from webdriver_manager.chrome import ChromeDriverManager
 from webdriver_manager.microsoft import EdgeChromiumDriverManager
@@ -52,29 +52,19 @@ class URLChecker:
 			os.mkdir("outputs")
 		except:
 			pass
-		if os.path.exists("backup.log"):
-			with open("backup.log","r") as reader:
-				self.backup =[i.strip("\n") for i in reader.readlines()]
-		else:
-			self.backup = []
-		if not os.path.exists("result.csv"):
-			with open('output.csv', 'w', newline='', encoding='utf-8') as f:
-	    			writer = csv.writer(f)
-	    			writer.writerow(["URL", "STATUS", "FILENAME"])  
-	def driverdata(self):
-		#capabilities = DesiredCapabilities.CHROME.copy()
-		capabilities = DesiredCapabilities.EDGE.copy()
-		capabilities['goog:loggingPrefs'] = {'performance': 'ALL'}
-		capabilities['acceptSslCerts'] = True
-		#options = webdriver.ChromeOptions()
-		options = EdgeOptions()
-		options.add_argument('--ignore-ssl-errors=yes')
-		options.add_argument('--ignore-certificate-errors')
-		options.add_argument(' --no-sandbox')
-		#driver = webdriver.Chrome(executable_path=ChromeDriverManager().install(),desired_capabilities=capabilities,options=options)
-		driver = webdriver.Chrome(executable_path=EdgeChromiumDriverManager().install(),desired_capabilities=capabilities) 
-		driver.set_page_load_timeout(7)
-		return driver
+		with open('output.csv', 'w', newline='', encoding='utf-8') as f:
+    			writer = csv.writer(f)
+    			writer.writerow(["URL", "STATUS", "FILENAME"])  
+		self.urls = ['https://www.bet365.com/',
+			'www.sexeducation.fandom.com/wiki/Sex_Education',
+			'www.livejasmin.com',
+			'www.guntrader.uk/',
+			'www.utorrent.com/',
+			'sherights.com',
+			'thepiratebay.org',
+			'pornhub.com',
+			'freespin.com/',
+			'slutroulette.com']
 	def get_result(self,url):
 		headers = {
 		'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
@@ -103,81 +93,69 @@ class URLChecker:
 				except Exception as e:
 					#print(e)
 					pass
-
+	def driverdata(self):
+		options = EdgeOptions()
+		options.add_argument('--ignore-ssl-errors=yes')
+		options.add_argument('--ignore-certificate-errors')
+		options.add_argument(' --no-sandbox')
+		edgedriver = 'C:\Program Files\Python39\msedgedriver.exe'
+		driver = webdriver.Edge(executable_path=(edgedriver))
+		#driver = webdriver.Chrome(executable_path=ChromeDriverManager().install())
+		driver.set_page_load_timeout(7)
+		return driver
 	def GETURLS(self):
-		if os.path.exists("urls.txt"):
-			with open("urls.txt", "r") as reader:
-				urls = [i.strip("\n") for i in reader.readlines() if i.strip("\n") not in self.backup and len(i.strip("\n"))>1]
-				for j in urls:
-					try:
-						driver = self.driverdata()
-					except Exception as e: #handle exception
-						print(e)
-						sys.exit()
-						
-					if "https" not in j.lower():
-						log.logger.info("checking with http ")
-						i = "https://{}".format(j)
-					else:
-						i = j
-					log.logger.info(j)
-					try:
-						driver.get(i)
-						log.logger.info("Waiting 10 secends to load page completely...........")
-						time.sleep(10)
-					except Exception as e:
-						print(e)
-						with open('output.csv', 'a', newline='', encoding='utf-8') as f:
-							writer = csv.writer(f)
-							writer.writerow([j, "blocked", "false"])  
-							continue
-					if "blocked" in driver.title.lower():
-						status = ''
-					else:
-						current_url = driver.current_url
-						js = '''
-						let callback = arguments[0];
-						let xhr = new XMLHttpRequest();
-						xhr.open('GET', '{}', true);
-						xhr.onload = function () {{
-						    if (this.readyState === 4) {{
-							callback(this.status);
-						    }}
-						}};
-						xhr.onerror = function () {{
-						    callback('error');
-						}};
-						xhr.send(null);
-						'''.format(current_url)
-						status= driver.execute_async_script(js)
-					if status == 200 or status == '200':
-						status = "working"
-					else:
-						status = "blocked"
-					name = "_".join(j.split("/"))
-					filename = "{}.txt".format(name)
-					namereal = os.path.join("outputs",filename)
-					html_source = driver.page_source
-					soup = BeautifulSoup(html_source,"html.parser")
-					textdata = soup.get_text(separator=' ')
-					with open(namereal,"w", encoding='utf-8') as writer:
-						writer.write(str(textdata))
+			urls = self.urls
+			for j in urls:
+				driver = self.driverdata()
+				if "https" not in j.lower():
+					log.logger.info("checking with http ")
+					i = "https://{}".format(j)
+				else:
+					i = j
+				log.logger.info(j)
+				try:
+					driver.get(i)
+					log.logger.info("Waiting 20 secends to load page completely...........")
+					time.sleep(20)
+				except:
 					with open('output.csv', 'a', newline='', encoding='utf-8') as f:
 						writer = csv.writer(f)
-						writer.writerow([j, status, namereal])  	
-					with open("backup.log","a") as writer:
-						writer.write(j+"\n")	 
-					driver.close()   
-					#sys.exit()	
-				
-		else:
-			log.logger.critical("Urls.txt file not found ")
-			log.logger.info("creating url file ")
-			urlfile = open("urls.txt","a")
-			urlfile.close()
-			log.logger.info("please add your urls in urls.txt file")
-			log.logger.info("add then again run the script")
-			sys.exit()
-			
+						writer.writerow([j, "blocked", "not available"])
+				if "blocked" in driver.title.lower() or "block" in driver.title.lower() or "denied" in driver.title.lower():
+					status = ''
+				else:
+					current_url = driver.current_url
+					js = '''
+					let callback = arguments[0];
+					let xhr = new XMLHttpRequest();
+					xhr.open('GET', '{}', true);
+					xhr.onload = function () {{
+					    if (this.readyState === 4) {{
+						callback(this.status);
+					    }}
+					}};
+					xhr.onerror = function () {{
+					    callback('error');
+					}};
+					xhr.send(null);
+					'''.format(current_url)
+					status= driver.execute_async_script(js)
+				if status == 200 or status == '200':
+					status = "working"
+				else:
+					status = "blocked" 
+				name = "_".join(j.split("/"))
+				filename = "{}.txt".format(name)
+				namereal = os.path.join("outputs",filename)
+				html_source = driver.page_source
+				soup = BeautifulSoup(html_source,"html.parser")
+				textdata = soup.get_text(separator=' ')
+				with open(namereal,"w", encoding='utf-8') as writer:
+					writer.write(str(textdata))
+				with open('output.csv', 'a', newline='', encoding='utf-8') as f:
+					writer = csv.writer(f)
+					writer.writerow([j, status, namereal])
+				driver.close()   
+				#sys.exit()	
 obj = URLChecker()
 obj.GETURLS()
