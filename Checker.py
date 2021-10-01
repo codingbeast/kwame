@@ -11,11 +11,7 @@ import time
 from bs4 import BeautifulSoup
 import colorlog
 from selenium import webdriver
-from msedge.selenium_tools import EdgeOptions
-from webdriver_manager.chrome import ChromeDriverManager
-from webdriver_manager.microsoft import EdgeChromiumDriverManager
 import json
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 import os
 
 os.environ['WDM_LOCAL'] = '1'
@@ -54,17 +50,13 @@ class URLChecker:
 			pass
 		with open('output.csv', 'w', newline='', encoding='utf-8') as f:
     			writer = csv.writer(f)
-    			writer.writerow(["URL", "STATUS", "FILENAME"])  
-		self.urls = ['https://www.bet365.com/',
-			'www.sexeducation.fandom.com/wiki/Sex_Education',
-			'www.livejasmin.com',
-			'www.guntrader.uk/',
-			'www.utorrent.com/',
-			'sherights.com',
-			'thepiratebay.org',
-			'pornhub.com',
-			'freespin.com/',
-			'slutroulette.com']
+    			writer.writerow(["URL", "STATUS", "FILENAME"]) 
+    		if os.path.exists("urls.txt"):
+    			with open("urls.txt", "r") as reader:
+				self.urls = [i.strip("\n") for i in reader.readlines() if i.strip("\n") not in self.backup and len(i.strip("\n"))>1] 
+		else:
+			print("urls.txt file not found")
+			sys.exit()
 	def get_result(self,url):
 		headers = {
 		'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:92.0) Gecko/20100101 Firefox/92.0',
@@ -94,10 +86,10 @@ class URLChecker:
 					#print(e)
 					pass
 	def driverdata(self):
-		options = EdgeOptions()
-		options.add_argument('--ignore-ssl-errors=yes')
-		options.add_argument('--ignore-certificate-errors')
-		options.add_argument(' --no-sandbox')
+		#options = EdgeOptions()
+		#options.add_argument('--ignore-ssl-errors=yes')
+		#options.add_argument('--ignore-certificate-errors')
+		#options.add_argument(' --no-sandbox')
 		edgedriver = 'C:\Program Files\Python39\msedgedriver.exe'
 		driver = webdriver.Edge(executable_path=(edgedriver))
 		#driver = webdriver.Chrome(executable_path=ChromeDriverManager().install())
