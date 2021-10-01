@@ -1,7 +1,7 @@
-msedge_selenium_tools==3.141.3
 requests==2.26.0
-webdriver_manager==3.4.2
-colorlog==5.0.1
-requests_random_user_agent==2021.5.29
 selenium==3.141.0
+colorlog==5.0.1
+webdriver_manager==3.4.2
+msedge_selenium_tools==3.141.3
+requests_random_user_agent==2021.5.29
 beautifulsoup4==4.10.0

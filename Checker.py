@@ -106,7 +106,12 @@ class URLChecker:
 	def GETURLS(self):
 			urls = self.urls
 			for j in urls:
-				driver = self.driverdata()
+				try:
+					driver = self.driverdata()
+				except Exception as e:
+					#handle this exception 
+					print(e)
+					continue
 				if "https" not in j.lower():
 					log.logger.info("checking with http ")
 					i = "https://{}".format(j)
